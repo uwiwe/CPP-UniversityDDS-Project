@@ -1,1 +1,1 @@
-# CPP-UniversityDDS-Project
+Este proyecto permite interactuar con el arbol genealogico de magos. Fue desarrollado para la materia Estructuras Dinamicas de Datos.
