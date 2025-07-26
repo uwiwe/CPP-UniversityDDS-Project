@@ -11,5 +11,6 @@ struct NodoLista { // lista enlazada qwue guarda todos los magos, para poder con
 NodoLista* leerMagosCSV(const char* nombreArchivo);
 Mago* construirArbol(NodoLista* lista);
 Mago* buscarMagoId(NodoLista* lista, int id);
+void mostrarArbolPreorden(Mago* raiz);
 
 #endif

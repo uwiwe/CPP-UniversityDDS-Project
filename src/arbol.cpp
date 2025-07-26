@@ -15,6 +15,7 @@ NodoLista* leerMagosCSV(const char* nombreArchivo) {
     }
 
     NodoLista* cabeza = nullptr;
+    NodoLista* cola = nullptr;
     string linea;
     getline(archivo, linea); // Saltar encabezado
 
@@ -53,8 +54,15 @@ NodoLista* leerMagosCSV(const char* nombreArchivo) {
         getline(ss, campo, ',');
         nuevo->is_owner = stoi(campo);
 
-        NodoLista* nodo = new NodoLista{nuevo, cabeza}; // se inserta al inicio de la lista
-        cabeza = nodo;
+        NodoLista* nodo = new NodoLista{nuevo, nullptr};
+
+        if (!cabeza) {
+            cabeza = nodo;
+            cola = nodo;
+        } else {
+            cola->next = nodo;
+            cola = nodo;
+        }
     }
 
     archivo.close();
@@ -72,18 +80,17 @@ Mago* buscarMagoId(NodoLista* lista, int id) {
     return nullptr;
 }
 
-// Construye el arbol binario conectando padres con hijos
 Mago* construirArbol(NodoLista* lista) {
     Mago* raiz = nullptr;
-    NodoLista* actual = lista;
+    NodoLista* actual = lista; // puntero que me permite empezar a recorrer la lista desde el comienzo
 
     while (actual) {
         Mago* hijo = actual->mago;
-        if (hijo->id_father == -1) { // significa que es la raiz
+        if (hijo->id_father == -1) {
             raiz = hijo;
         } else {
             Mago* padre = buscarMagoId(lista, hijo->id_father);
-            if (padre) {
+            if (padre) { // se convierte en hijo izquiero o derecho
                 if (!padre->left)
                     padre->left = hijo;
                 else if (!padre->right)
@@ -94,5 +101,18 @@ Mago* construirArbol(NodoLista* lista) {
         actual = actual->next;
     }
 
-    return raiz;
+    return raiz; // retorno raiz, me permite acceder completamente al arbol
+}
+
+// recorrer el arbol, filtrando que esten vivos y ordenadamente en PREORDEN
+void mostrarArbolPreorden(Mago* padre) {
+    if (!padre) return;
+
+    if (padre->is_dead == 0) {
+        std::cout << "ID: " << padre->id << ", " << padre->name << " " << padre->last_name << " , Edad: " << padre->age << " , Magia: " << padre->type_magic << (padre->is_owner ? " (Dueno del hechizo)" : "") << endl;
+    }
+    if (padre->left)
+        mostrarArbolPreorden(padre->left);
+    if (padre->right)
+        mostrarArbolPreorden(padre->right);
 }

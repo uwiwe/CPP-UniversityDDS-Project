@@ -83,3 +83,24 @@ void mostrarHechizos(Mago* mago) {
         actual = actual->next;
     }
 }
+
+void reescribirArchivoHechizos(const string& ruta, NodoLista* lista) {
+    ofstream archivo(ruta, ios::trunc); // Sobrescribe todo
+
+    if (!archivo.is_open()) {
+        cerr << "Error al abrir el archivo de hechizos para reescribir." << endl;
+        return;
+    }
+
+    NodoLista* actual = lista;
+    while (actual) {
+        Hechizo* h = actual->mago->hechizos;
+        while (h) {
+            archivo << actual->mago->id << "," << h->nombre << "\n";
+            h = h->next;
+        }
+        actual = actual->next;
+    }
+
+    archivo.close();
+}
