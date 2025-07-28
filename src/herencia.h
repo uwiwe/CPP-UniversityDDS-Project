@@ -38,9 +38,9 @@ struct Queue { // estructura de la cola: dos punteros: front, rear == head, last
 };
 
 struct Registro {
-    std::string hechizo;
-    int duenos[20];
-    int cantidad = 0;
+    std::string hechizo; // nombre del hechizo
+    int duenos[20]; // ids de los magos que han sido duenos
+    int cantidad = 0; // cantidad de duenos registrados
 };
 
 struct HistorialHechizos { // para llevar un registro de quien ha sido dueno de los hechizos. hace falta para la condicion de maestro de la mujer
@@ -54,14 +54,15 @@ struct HistorialHechizos { // para llevar un registro de quien ha sido dueno de 
                     if (registros[i].duenos[j] == id)
                         return;
                 }
-                registros[i].duenos[registros[i].cantidad++] = id;
+                registros[i].duenos[registros[i].cantidad++] = id; // lo incluimos si no esta 
                 return;
             }
         }
-        registros[total].hechizo = nombre;
+        // si el hechizo no existe, se agrega en el registro
+        registros[total].hechizo = nombre; 
         registros[total].duenos[0] = id;
         registros[total].cantidad = 1;
-        ++total;
+        ++total; // se registra un nuevo hechizo
     }
 
     bool fueDueno(const std::string& nombre, int id) const {
@@ -85,5 +86,9 @@ Mago* buscarCompanero(NodoLista* lista, Mago* yo);
 bool tieneHijos(Mago* m);
 Mago* buscarCompaneroDelMaestro(NodoLista* lista, Mago* yo);
 Mago* subirYNavegarHerencia(NodoLista* lista, Mago* origen);
+Mago* buscarMujerMasJovenConCondiciones(Mago* raiz, NodoLista* lista, const std::string& nombre_hechizo);
+Mago* encontrarReemplazoFinal(NodoLista* lista, Mago* dueno, Mago* raiz, const std::string& hechizo);
+void verificarEdad(Mago* actual, NodoLista* lista);
 
+extern HistorialHechizos historial; // variable global para poder usarse en main
 #endif

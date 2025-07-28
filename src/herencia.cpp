@@ -3,7 +3,7 @@
 
 using namespace std;
 
-HistorialHechizos historial;
+HistorialHechizos historial; // variable global que lleva el registro
 
 // Devuelve el mago actual que tiene el hechizo
 Mago* getDuenoActual(NodoLista* lista) {
@@ -64,7 +64,7 @@ void reasignarDueno(Mago* anterior, Mago* nuevo) {
         h = h->next;
     }
 
-    cout << "El nuevo dueno del hechizo es: " << nuevo->name << " " << nuevo->last_name << endl;
+    cout << "El nuevo dueno del hechizo es: " << nuevo->id << ". " << nuevo->name << " " << nuevo->last_name << endl;
 }
 
 Mago* buscarCompanero(NodoLista* lista, Mago* yo) {
@@ -130,7 +130,7 @@ Mago* buscarCompaneroDelMaestro(NodoLista* lista, Mago* yo) {
     NodoLista* actual = lista;
     while (actual) {
         Mago* m = actual->mago;
-        if (m->id_father == maestro->id_father && m->id != maestro->id) // tienen el mismo padre y son diferentes
+        if (m->id_father == maestro->id_father && m->id != maestro->id && m->is_dead == 0) // tienen el mismo padre y son diferentes
             return m; // entonces m es el companero
         actual = actual->next;
     }
@@ -155,4 +155,83 @@ Mago* subirYNavegarHerencia(NodoLista* lista, Mago* origen) {
     }
 
     return nullptr;
+}
+
+Mago* buscarMujerMasJovenConCondiciones(Mago* raiz, NodoLista* lista, const std::string& nombre_hechizo) {
+    if (!raiz) return nullptr;
+
+    Queue q;
+    q.enqueue(raiz);
+
+    Mago* candidataConCondicion = nullptr;
+    Mago* candidataGeneral = nullptr;
+
+    while (!q.isEmpty()) {
+        Mago* actual = q.dequeue();
+        // std::cout << "Evaluando nodo id" << actual->id << " - " << actual->name 
+        //   << ", genero: " << actual->gender << ", edad: " << actual->age 
+        //   << ", viva: " << (actual->is_dead == 0 ? "si" : "no") << endl;
+
+        if (actual->left) q.enqueue(actual->left);
+        if (actual->right) q.enqueue(actual->right);
+
+        if (actual->gender == 'M' && actual->is_dead == 0) {
+            // opcion de mujer mas joven
+            if (!candidataGeneral || actual->age < candidataGeneral->age)
+                candidataGeneral = actual;
+
+            // si tiene discipulos y cumple las demas condiciones, es la elegida
+            if (actual->left || actual->right) {
+                Mago* maestro = buscarMagoId(lista, actual->id_father);
+                if (maestro && maestro->type_magic == "mixed" &&
+                    historial.fueDueno(nombre_hechizo, maestro->id)) {
+
+                    if (!candidataConCondicion || actual->age < candidataConCondicion->age)
+                        candidataConCondicion = actual;
+                }
+            }
+        }
+    }
+
+    if (candidataConCondicion != nullptr) {
+        return candidataConCondicion;
+    } else {
+        // cout << "No se encontro ningun reemplazo con las condiciones";
+        return candidataGeneral;
+    }
+}
+
+
+Mago* encontrarReemplazoFinal(NodoLista* lista, Mago* dueno, Mago* raiz, const std::string& hechizo) {
+    Mago* candidato = buscarReemplazoConCompanero(lista, dueno);
+    if (candidato) return candidato;
+
+    return buscarMujerMasJovenConCondiciones(raiz, lista, hechizo);
+}
+
+void verificarEdad(Mago* actual, NodoLista* lista) {
+    if (!actual || actual->is_dead || actual->age <= 70) return;
+
+    Mago* igualMagia = nullptr;
+    Mago* masViejo = nullptr;
+
+    if (actual->left && actual->left->is_dead == 0) {
+        if (actual->left->type_magic == actual->type_magic)
+            igualMagia = actual->left;
+        if (!masViejo || actual->left->age > masViejo->age)
+            masViejo = actual->left;
+    }
+
+    if (actual->right && actual->right->is_dead == 0) {
+        if (!igualMagia && actual->right->type_magic == actual->type_magic)
+            igualMagia = actual->right;
+        if (!masViejo || actual->right->age > masViejo->age)
+            masViejo = actual->right;
+    }
+
+    Mago* nuevo = igualMagia ? igualMagia : masViejo;
+    if (nuevo) {
+        reasignarDueno(actual, nuevo);
+        cout << "El dueno paso de los 70 anos. El hechizo se paso al discipulo mas apto." << endl;
+    }
 }
